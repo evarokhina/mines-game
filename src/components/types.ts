@@ -16,4 +16,11 @@ export enum Settings {
   BOMBS_COUNT = 10,
 }
 
+export enum GameState {
+  IDLE,
+  PLAYING,
+  PAUSE,
+  GAME_OVER,
+}
+
 export type TimerID = ReturnType<typeof setTimeout>;

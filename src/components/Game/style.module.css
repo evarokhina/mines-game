@@ -2,7 +2,7 @@
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
-  max-width: 550px;
+  max-width: 600px;
   border: 1px solid #1f1f1f;
   border-radius: 6px;
   overflow: hidden;
@@ -12,9 +12,14 @@
 .fields {
   width: 400px;
   height: 400px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 0;
 }
 
 .aside {
+  min-width: 200px;
   padding: 15px;
   display: flex;
   flex-direction: column;
@@ -23,7 +28,7 @@
 
 .button {
   width: 100%;
-  padding: 20px;
+  padding: 20px 0;
   margin-bottom: 5px;
   background-color: #54595b;
   color: #e5e5e5;
@@ -43,4 +48,8 @@
 
 .button:last-child {
   margin-bottom: 0;
+}
+
+.stats {
+  text-align: center;
 }

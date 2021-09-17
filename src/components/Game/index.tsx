@@ -1,5 +1,5 @@
 import React from 'react';
-import {IField, Settings, TimerID} from '../types';
+import {GameState, IField, Settings, TimerID} from '../types';
 import {randomNumber} from '../../utils/helpers';
 
 import style from './style.module.css';
@@ -12,42 +12,58 @@ interface Props {
 interface State {
   fields: IField[];
   timer: number;
-  isPlaying: boolean;
+  gameState: GameState;
   freeFlagsCount: number;
 }
 
 export default class Game extends React.PureComponent<Props, State> {
   state = {
-    fields: [],
+    fields: this.generateFields(),
     timer: 0,
-    isPlaying: false,
+    gameState: GameState.IDLE,
     freeFlagsCount: Settings.BOMBS_COUNT,
   };
 
   timerId!: TimerID;
 
-  initStatistics() {
+  get playButtonLabel(): string {
+    console.log(this.state.gameState);
+    if (this.state.gameState === GameState.IDLE) {
+      return 'Play';
+    }
+
+    return 'Play again';
+  }
+
+  get pauseButtonLabel(): string {
+    switch (this.state.gameState) {
+      case GameState.PAUSE:
+        return 'Continue';
+      default:
+        return 'Pause';
+    }
+  }
+
+  initGameState() {
     this.setState({
-      fields: [],
+      fields: this.generateFields(),
       timer: 0,
-      isPlaying: false,
+      gameState: GameState.PLAYING,
       freeFlagsCount: Settings.BOMBS_COUNT,
     });
   }
 
   play() {
     // Clear game values
-    this.initStatistics();
+    this.initGameState();
     // Start timer
+    clearInterval(this.timerId);
     this.timerId = setInterval(this.tick.bind(this), 1000);
-    // Init random bomds
-    this.initFields();
-    // this.initNumbers();
   }
 
-  start() {
+  continue() {
     this.setState((state) => ({
-      isPlaying: true,
+      gameState: GameState.PLAYING,
     }));
     this.timerId = setInterval(this.tick.bind(this), 1000);
   }
@@ -55,7 +71,7 @@ export default class Game extends React.PureComponent<Props, State> {
   pause() {
     clearInterval(this.timerId);
     this.setState((state) => ({
-      isPlaying: false,
+      gameState: GameState.PAUSE,
     }));
   }
 
@@ -65,7 +81,7 @@ export default class Game extends React.PureComponent<Props, State> {
     }));
   }
 
-  initFields() {
+  generateFields() {
     const fieldsWithBombsIds: Set<number> = new Set();
     const fields: IField[] = [];
 
@@ -95,21 +111,25 @@ export default class Game extends React.PureComponent<Props, State> {
       });
     });
 
-    this.setState({fields});
+    return fields;
   }
 
+  handlePlayButtonClick = () => {
+    this.play();
+  };
+
+  handlePauseButtonClick = () => {
+    this.pause();
+    if (this.state.gameState === GameState.PAUSE) {
+      this.continue();
+    } else {
+      this.pause();
+    }
+  };
+
   renderFields() {
-    return Array.from(Array(Settings.FIELDS_COUNT).keys()).map((id) => (
-      <Field
-        field={{
-          bombsAround: 0,
-          hasBomb: false,
-          id: id,
-          coords: [0, 0],
-          hasFlag: false,
-          isOpened: false,
-        }}
-      />
+    return this.state.fields.map((field) => (
+      <Field key={field.id} field={field} isBombShown={this.state.gameState === GameState.GAME_OVER} />
     ));
   }
 
@@ -119,12 +139,16 @@ export default class Game extends React.PureComponent<Props, State> {
         <section className={style.fields}>{this.renderFields()}</section>
         <aside className={style.aside}>
           <div className={style.stats}>
-            <p>Time: 0:00</p>
+            <p>Time: 0:{this.state.timer}</p>
             <p>Flags: 0/10</p>
           </div>
           <div className={style.buttonWrapper}>
-            <button className={style.button}>Pause</button>
-            <button className={style.button}>Play again</button>
+            <button className={style.button} onClick={this.handlePlayButtonClick}>
+              {this.playButtonLabel}
+            </button>
+            <button className={style.button} onClick={this.handlePauseButtonClick}>
+              {this.pauseButtonLabel}
+            </button>
           </div>
         </aside>
       </div>

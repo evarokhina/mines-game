@@ -4,10 +4,18 @@ import {IField} from '../types';
 import style from './style.module.css';
 
 interface Props {
-  children?: React.ReactNode;
   field: IField;
+  isBombShown: boolean;
 }
 
-export default function Field({children = ''}: Props) {
-  return <button className={style.Field}>{children}</button>;
+export default function Field({field, isBombShown}: Props) {
+  let label: number | string = '';
+
+  if (field.hasBomb && isBombShown) {
+    label = '💣';
+  } else if (field.bombsAround) {
+    label = field.bombsAround;
+  }
+
+  return <button className={style.Field}>{label}</button>;
 }
