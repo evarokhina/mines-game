@@ -1,5 +1,5 @@
 import React from 'react';
-import {Coords, GameState, IField, Settings, TimerID} from '../types';
+import {GameState, IField, Settings, TimerID} from '../types';
 import {randomNumber} from '../../utils/helpers';
 
 import style from './style.module.css';
@@ -27,7 +27,6 @@ export default class Game extends React.PureComponent<Props, State> {
   timerId!: TimerID;
 
   get playButtonLabel(): string {
-    console.log(this.state.gameState);
     if (this.state.gameState === GameState.IDLE) {
       return 'Play';
     }
@@ -154,8 +153,24 @@ export default class Game extends React.PureComponent<Props, State> {
     }
   };
 
-  handleFieldClick = (field: IField) => {
-    console.log(field);
+  handleFieldClick = (clickedField: IField) => {
+    if (clickedField.hasBomb) {
+      return this.setState((state) => ({
+        // TODO: add gameOver() method
+        gameState: GameState.GAME_OVER,
+        fields: state.fields.map((field) => ({
+          ...field,
+          isOpened: field.hasBomb,
+        })),
+      }));
+    }
+
+    this.setState((state) => ({
+      fields: state.fields.map((field) => ({
+        ...field,
+        isOpened: clickedField.id === field.id,
+      })),
+    }));
   };
 
   renderFields() {
@@ -182,9 +197,11 @@ export default class Game extends React.PureComponent<Props, State> {
             <button className={style.button} onClick={this.handlePlayButtonClick}>
               {this.playButtonLabel}
             </button>
-            <button className={style.button} onClick={this.handlePauseButtonClick}>
-              {this.pauseButtonLabel}
-            </button>
+            {this.state.gameState === GameState.IDLE || (
+              <button className={style.button} onClick={this.handlePauseButtonClick}>
+                {this.pauseButtonLabel}
+              </button>
+            )}
           </div>
         </aside>
       </div>
