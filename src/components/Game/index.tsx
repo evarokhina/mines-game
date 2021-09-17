@@ -168,7 +168,7 @@ export default class Game extends React.PureComponent<Props, State> {
     this.setState((state) => ({
       fields: state.fields.map((field) => ({
         ...field,
-        isOpened: clickedField.id === field.id,
+        isOpened: field.isOpened ? true : clickedField.id === field.id,
       })),
     }));
   };
