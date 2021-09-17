@@ -1,5 +1,5 @@
 import React from 'react';
-import {GameState, IField, Settings, TimerID} from '../types';
+import {Coords, GameState, IField, Settings, TimerID} from '../types';
 import {randomNumber} from '../../utils/helpers';
 
 import style from './style.module.css';
@@ -95,7 +95,7 @@ export default class Game extends React.PureComponent<Props, State> {
 
     generateRandomBomds();
 
-    // Create fields
+    // Create basic fields with coords
     Array.from(Array(Settings.FIELDS_COUNT).keys()).forEach((index) => {
       const y = Math.floor(index / Settings.FIELDS_CONSTRAINTS_Y) + 1;
       const x = (index % Settings.FIELDS_CONSTRAINTS_X) + 1;
@@ -103,13 +103,40 @@ export default class Game extends React.PureComponent<Props, State> {
 
       fields.push({
         id,
-        coords: [y, x],
+        coords: {y, x},
         isOpened: false,
         hasBomb: fieldsWithBombsIds.has(id),
         hasFlag: false,
         bombsAround: 0,
       });
     });
+
+    const findFieldByCoords = (x: number, y: number): IField | undefined => {
+      return fields.find((field) => field.coords.y === y && field.coords.x === x);
+    };
+
+    const isInBoundaries = (x: number, y: number): boolean => {
+      return x >= 1 || x <= Settings.FIELDS_CONSTRAINTS_X || y >= 1 || y <= Settings.FIELDS_CONSTRAINTS_Y;
+    };
+
+    // Create bombsAround logic
+    for (const field of fields) {
+      if (field.hasBomb) {
+        const {x, y} = field.coords;
+        const foundFields: Array<IField | undefined> = [];
+
+        isInBoundaries(x - 1, y - 1) && foundFields.push(findFieldByCoords(x - 1, y - 1));
+        isInBoundaries(x, y - 1) && foundFields.push(findFieldByCoords(x, y - 1));
+        isInBoundaries(x + 1, y - 1) && foundFields.push(findFieldByCoords(x + 1, y - 1));
+        isInBoundaries(x - 1, y) && foundFields.push(findFieldByCoords(x - 1, y));
+        isInBoundaries(x + 1, y) && foundFields.push(findFieldByCoords(x + 1, y));
+        isInBoundaries(x - 1, y + 1) && foundFields.push(findFieldByCoords(x - 1, y + 1));
+        isInBoundaries(x, y + 1) && foundFields.push(findFieldByCoords(x, y + 1));
+        isInBoundaries(x + 1, y + 1) && foundFields.push(findFieldByCoords(x + 1, y + 1));
+
+        foundFields.forEach((field) => field && field.bombsAround++);
+      }
+    }
 
     return fields;
   }
@@ -127,9 +154,18 @@ export default class Game extends React.PureComponent<Props, State> {
     }
   };
 
+  handleFieldClick = (field: IField) => {
+    console.log(field);
+  };
+
   renderFields() {
     return this.state.fields.map((field) => (
-      <Field key={field.id} field={field} isBombShown={this.state.gameState === GameState.GAME_OVER} />
+      <Field
+        key={field.id}
+        field={field}
+        isBombShown={this.state.gameState === GameState.GAME_OVER}
+        onClick={this.handleFieldClick}
+      />
     ));
   }
 

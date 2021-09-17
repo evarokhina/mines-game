@@ -1,4 +1,7 @@
-export type Coords = [number, number];
+export type Coords = {
+  y: number;
+  x: number;
+};
 
 export interface IField {
   id: number;
